@@ -2,11 +2,11 @@ import socket
 
 import keyboard
 
-HOST = '192.168.100.41'  # Connect to localhost
-PORT = 1234
+PIHOST = '192.168.100.41'  # Connect to localhost
+PIPORT = 1234
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
+    s.connect((PIHOST, PIPORT))
 
     while True:
         if keyboard.is_pressed('w'):
@@ -20,4 +20,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         else:
             s.sendall(b'k')
         data = s.recv(1024)
-        print(f"Received: {data.decode()}")
+        data.decode()
