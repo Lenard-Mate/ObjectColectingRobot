@@ -19,5 +19,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.sendall(b's')
         else:
             s.sendall(b'k')
-        data = s.recv(1024)
-        data.decode()
+        s.recv(1024)
