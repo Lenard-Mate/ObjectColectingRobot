@@ -5,7 +5,7 @@ import time
 import socket
 import struct
 import pickle
-
+import threading
 
 cap = cv.VideoCapture(0)
 whT = 220
@@ -27,7 +27,7 @@ net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
 net.setPreferableTarget(cv.dnn.DNN_TARGET_CPU)
 prev_timeframe=0
 new_timeframe=0
-
+auxX = 0
 
 HOST='192.168.100.7'
 PORT=8485
@@ -73,6 +73,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sok:
 
 
     def findObjects(outputs, img,fps):
+        global auxX
         hT, wT, cT = img.shape
         bbox = []
         classIds = []
@@ -95,12 +96,31 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sok:
         if isinstance(indices, tuple):
             sendComand('k')
         for i in indices:
-            print("Lenard",i)
+
             box = bbox[i]
-            sendComand('w')
+            # sendComand('w')
             # sok.sendall(b'w')
             # sok.recv(1024)
             x, y, w, h = box[0], box[1], box[2], box[3]
+
+
+
+            print("Lenard", x)
+            if x > 350:
+                # if auxX - x > 10:
+                    sendComand('a')
+                    time.sleep(0.2)
+                    sendComand('k')
+            if x < 150:
+                # if auxX - x > 10:
+                    sendComand('d')
+                    time.sleep(0.2)
+                    sendComand('k')
+            if 350 >= x >= 150:
+                sendComand('w')
+                time.sleep(0.4)
+                sendComand('k')
+            auxX = x
             cv.rectangle(img, (x, y), (x + w, y + h), (25, 28, 255), 2)
             cv.putText(img, f'{"Cio"} {int(confs[i] * 100)}%',
                        (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
@@ -137,7 +157,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sok:
         layersNames = net.getLayerNames()
         outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
         outputs = net.forward(outputNames)
-        findObjects(outputs, img,fps)
+        thread = threading.Thread(target=findObjects(outputs, img,fps))
+        thread.start()
 
         cv.imshow('Image', img)
 
